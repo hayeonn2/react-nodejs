@@ -40,6 +40,7 @@ app.post('/register', (req, res) => {
   const user = new User(req.body);
 
 // save는 몽고디비에서 오는 것 (정보들이 유저모델에 저장이 됨)
+// save하기 전에 암호화를 시켜줘야 한다.
 user.save()
   .then((result) => {
     res.status(200).json({
