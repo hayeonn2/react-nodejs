@@ -41,16 +41,33 @@ app.post('/register', (req, res) => {
 user.save()
   .then((result) => {
     res.status(200).json({
-      result: result
+      result,
+      // success: true,
     });
   })
   // 만약에 에러가 있다고 한다면, 제이슨 형식으로 전달함 (실패와 에러메세지 전달)
   .catch((err) => {
     console.log(err);
     res.status(500).json({
-      error: err
+      err
+      // success: false,
     });
   });
+
+  // try {
+  //   const user = new User(req.body);
+  //   const result = await user.save();
+  //   res.status(201).json({
+  //     message: 'User created',
+  //     result: result
+  //   });
+  // } catch (err) {
+  //   console.log(err);
+  //   res.status(500).json({
+  //     error: err
+  //   });
+  // }
+  
 
 })
 
