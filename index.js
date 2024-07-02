@@ -5,6 +5,8 @@ const app = express() // 새로운 express app 생성
 const port = 5000 // 5000번 포트를 백 서버로 둠
 const bodyParser = require('body-parser');
 
+const config = require('./config/key')
+
 const { User } = require('./models/User');
 
 // bodyParser가 클라이언트에서 오는 정보를 서버에서 분석해서 가져올 수 있게 해줌
@@ -16,7 +18,7 @@ app.use(bodyParser.json());
 
 // mongoose - 어플리케이션과 몽고디비 연결
 const mongoose = require('mongoose')
-mongoose.connect('mongodb+srv://hayeonn2:zxc123@cluster0.sxo71bz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
+mongoose.connect(config.mongoURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
