@@ -25,7 +25,7 @@ mongoose.connect('mongodb+srv://hayeonn2:zxc123@cluster0.sxo71bz.mongodb.net/?re
 
 // 루트 디렉토리에 오면 hello world 를 출력함
 app.get('/', (req, res) => {
-  res.send('Hello World! 하이염ㅋㅋ')
+  res.send('Hello World! 하이염ㅋㅋ!!')
 });
 
 // client에서 보내주는 정보들 (회원가입을 위한 라우트)
