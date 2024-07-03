@@ -63,6 +63,16 @@ userSchema.pre('save', function(next){
     // next() // next()로 다음동작으로 보냄 - index 파일에 있는 user.save()로 넘어감
 })
 
+
+userSchema.methods.comparePassword = function(plainPassword, callback) {
+    // 두가지가 같은지 체크! : plainpassword를 암호화해서 디비에 있는 것과 비교해야 한다.
+    // plainPassword = zxc123, 암호화된 비밀번호 = $2b$10$kQxuqYvq.ukRiv/Of.X4wOXmIXLAvYZVTUZynWPRro3ljONNNrLOS
+    bcrypt.compare(plainPassword, this.password, function (err, isMatch) {
+        if(err) return callback, // 비밀번호가 같지 않을 경우
+        callback(null, isMatch); // 같을 경우, 에러가 없고(null), isMatch(비밀번호는 같다 === true)
+    })
+}
+
 // 스키마를 모델로 감싸준다.
 const User = mongoose.model('User', userSchema);
 

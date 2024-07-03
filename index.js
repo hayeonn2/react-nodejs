@@ -71,7 +71,34 @@ user.save()
   //   });
   // }
   
+});
 
+// 로그인 route
+app.post('/login', (req, res) => {
+  // 1. 요청된 이메일을 데이터베이스에서 있는지 찾기.
+  // findOne: 몽고디비에서 제공하는 메소드
+  User.findOne({email: req.body.email}, (err, user) =>{
+    // 유저 콜렉션 안에 해당 이메일을 가진 사람이 없다면
+    if(!user){
+      return res.json({
+        loginSuccess: false,
+        message: "제공된 이메일에 해당하는 유저가 없습니다."
+      })
+    }
+
+    // 2. 요청된 이메일이 데이터베이스 있다면 비밀번호가 같은지 확인하기.
+    user.comparePassword(req.body.password, (err, isMatch) => {
+      if(!isMatch) return res.json({
+        loginSuccess: false,
+        message: "비밀번호가 틀렸습니다."
+      });
+
+      // 3. 비밀번호가 같다면, 유저를 위한 토큰을 생성
+      user.generateToken((err, user) => {
+        
+      })
+    });
+  })
 })
 
 // 5000번 포트에서 실행 함
