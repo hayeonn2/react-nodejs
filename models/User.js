@@ -56,6 +56,9 @@ userSchema.pre('save', function(next){
                 next();
             })
         })
+    } else {
+        // 비밀번호를 바꾸는게 아니라 다른 것을 바꿀때는?
+        next();
     }
     // next() // next()로 다음동작으로 보냄 - index 파일에 있는 user.save()로 넘어감
 })
