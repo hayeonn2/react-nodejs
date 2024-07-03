@@ -6,6 +6,10 @@ const bcrypt = require('bcrypt');
 // saltRounds : salt가 몇글자인지?
 const saltRounds = 10;
 
+// jsonwebtoken
+const jwt = require('jsonwebtoken');
+
+
 // 스키마 
 const userSchema = mongoose.Schema({
     name: {
@@ -20,6 +24,7 @@ const userSchema = mongoose.Schema({
     password: {
         type: String,
         minlength: 5,
+        trim: true,
     },
     lastname: {
         type: String,
@@ -63,15 +68,35 @@ userSchema.pre('save', function(next){
     // next() // next()로 다음동작으로 보냄 - index 파일에 있는 user.save()로 넘어감
 })
 
-
+// 비밀번호가 같은지
+// 2개가 전달 (req.body.password, (err, isMatch)
 userSchema.methods.comparePassword = function(plainPassword, callback) {
     // 두가지가 같은지 체크! : plainpassword를 암호화해서 디비에 있는 것과 비교해야 한다.
     // plainPassword = zxc123, 암호화된 비밀번호 = $2b$10$kQxuqYvq.ukRiv/Of.X4wOXmIXLAvYZVTUZynWPRro3ljONNNrLOS
     bcrypt.compare(plainPassword, this.password, function (err, isMatch) {
-        if(err) return callback, // 비밀번호가 같지 않을 경우
+        if(err) return callback(err); // 비밀번호가 같지 않을 경우
+        
         callback(null, isMatch); // 같을 경우, 에러가 없고(null), isMatch(비밀번호는 같다 === true)
     })
+    console.log(plainPassword) // 가입했을때
+    console.log(this.password) // 내가 입력한거 
+    
 }
+
+// 토큰생성
+// generateToken는 콜백함수 하나만 전달한다. index.js 에서 (err, user)로 받음
+userSchema.methods.generateToken = function (callback) {
+   const user = this;
+    // jsonwebtoken을 이용해서 token을 생성하기
+    const token = jwt.sign(user._id.toHexString(),  'userToken');
+
+    user.token = token;
+
+    user.save().then((user) => {
+        callback(null, user);
+    }).catch((err) => callback(err));
+}
+
 
 // 스키마를 모델로 감싸준다.
 const User = mongoose.model('User', userSchema);

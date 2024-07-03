@@ -4,6 +4,7 @@ const express = require('express') // express 가져옴
 const app = express() // 새로운 express app 생성
 const port = 5000 // 5000번 포트를 백 서버로 둠
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 
 const config = require('./config/key')
 
@@ -15,13 +16,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // application/json << 이 데이터를 분석해서 가져오도록 함
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 // mongoose - 어플리케이션과 몽고디비 연결
 const mongoose = require('mongoose')
-mongoose.connect(config.mongoURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(config.mongoURI, {})
  .then(() => console.log('MongoDB Connected...')) // 연결 됐을 때
  .catch(err => console.log(err)) // 연결 잘 안됐을 때
 
@@ -73,17 +72,19 @@ user.save()
   
 });
 
+
 // 로그인 route
 app.post('/login', (req, res) => {
   // 1. 요청된 이메일을 데이터베이스에서 있는지 찾기.
   // findOne: 몽고디비에서 제공하는 메소드
-  User.findOne({email: req.body.email}, (err, user) =>{
+  User.findOne({email: req.body.email})
+  .then((user) => {
     // 유저 콜렉션 안에 해당 이메일을 가진 사람이 없다면
     if(!user){
       return res.json({
         loginSuccess: false,
         message: "제공된 이메일에 해당하는 유저가 없습니다."
-      })
+      });
     }
 
     // 2. 요청된 이메일이 데이터베이스 있다면 비밀번호가 같은지 확인하기.
@@ -95,10 +96,56 @@ app.post('/login', (req, res) => {
 
       // 3. 비밀번호가 같다면, 유저를 위한 토큰을 생성
       user.generateToken((err, user) => {
+        if(err) return res.status(400).send(err);
         
-      })
+        // 토큰을 저장한다. 어디에? 쿠키, 로컬스토리지, ...
+        // cookieParser 이용하기
+        res.cookie("x_auth", user.token)
+          .status(200)
+          .json({
+            loginSuccess: true,
+            userId: user._id,
+            token: user.token,
+            message: "로그인 성공!"
+          });
+      });
     });
   })
+  .catch((err) => {
+    console.error(err);
+    res.status(400).send(err);
+  });
+  // User.findOne({email: req.body.email}, (err, user) =>{
+  //   // 유저 콜렉션 안에 해당 이메일을 가진 사람이 없다면
+  //   if(!user){
+  //     return res.json({
+  //       loginSuccess: false,
+  //       message: "제공된 이메일에 해당하는 유저가 없습니다."
+  //     })
+  //   }
+
+  //   // 2. 요청된 이메일이 데이터베이스 있다면 비밀번호가 같은지 확인하기.
+  //   user.comparePassword(req.body.password, (err, isMatch) => {
+  //     if(!isMatch) return res.json({
+  //       loginSuccess: false,
+  //       message: "비밀번호가 틀렸습니다."
+  //     });
+
+  //     // 3. 비밀번호가 같다면, 유저를 위한 토큰을 생성
+  //     user.generateToken((err, user) => {
+  //       if(err) return res.status(400).send(err);
+        
+  //       // 토큰을 저장한다. 어디에? 쿠키, 로컬스토리지, ...
+  //       // cookieParser 이용하기
+  //       res.cookie("x_auth", user.token) .status(200).json({
+  //         loginSuccess: true,
+  //         userId: user._id,
+  //         token: user.token,
+  //         message: "로그인 성공!"
+  //       })
+  //     })
+  //   });
+  // })
 })
 
 // 5000번 포트에서 실행 함
