@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 
 const config = require('./config/key')
 
+const {auth} = require('./middleware/auth')
 const { User } = require('./models/User');
 
 // bodyParser가 클라이언트에서 오는 정보를 서버에서 분석해서 가져올 수 있게 해줌
@@ -30,7 +31,7 @@ app.get('/', (req, res) => {
 });
 
 // client에서 보내주는 정보들 (회원가입을 위한 라우트)
-app.post('/register', (req, res) => {
+app.post('/api/user/register', (req, res) => {
   // 회원가입 할 때 필요한 정보들을 client에서 가져오면, 그것들을 데이터 베이스에 넣어준다.
   
   // 인스턴스를 만든다.
@@ -74,7 +75,7 @@ user.save()
 
 
 // 로그인 route
-app.post('/login', (req, res) => {
+app.post('/api/user/login', (req, res) => {
   // 1. 요청된 이메일을 데이터베이스에서 있는지 찾기.
   // findOne: 몽고디비에서 제공하는 메소드
   User.findOne({email: req.body.email})
@@ -146,6 +147,27 @@ app.post('/login', (req, res) => {
   //     })
   //   });
   // })
+})
+
+// auth route
+// auth 라는 미들웨어 : auth라는 엔드포인트에 리퀘스트를 받은다음, 콜백펑션 하기 전에
+// 중간에서 무언가를 해주는 것 (middleware 폴더 auth.js)
+app.get('/api/user/auth', auth, (req, res) => {
+  // auth.js 에서 넣어준 token, user 정보를 바로 가져올 수 있다.
+  // 여기 까지 왔다는 의미는 미들웨어(auth)를 성공적으로 통과했다.
+  // = Authentication 이 트루라는 말
+  // => 클라이언트에다가 정보를 전달해야 함
+  res.status(200).json({
+    _id: req.user._id, // auth에서 유저를 리퀘스트에 넣어서 작성 가능
+    isAdmin: req.user.role === 0 ? false : true, // role이 0이면 일반 유저
+    isAuth: true, 
+    email: req.user.email,
+    name: req.user.name,
+    lastname: req.user.lastname,
+    role: req.user.role,
+    image: req.user.image
+  })
+  
 })
 
 // 5000번 포트에서 실행 함
